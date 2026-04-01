@@ -19,17 +19,16 @@ logger = logging.getLogger(__name__)
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 try:
-    import google.generativeai as genai
+    from google import genai
     if GEMINI_API_KEY:
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel('gemini-pro')
-        logger.info("Gemini model loaded successfully.")
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        logger.info("Gemini client loaded successfully.")
     else:
-        model = None
+        client = None
         logger.warning("No GEMINI_API_KEY found in environment.")
 except ImportError:
     genai = None
-    model = None
+    client = None
 
 
 MOCK_QUESTIONS = {
@@ -95,7 +94,7 @@ def generate_quiz_json(topic: str, num_questions: int = 5, difficulty: int = 1) 
     """
     diff_label = {1: "Beginner", 2: "Intermediate", 3: "Advanced"}.get(difficulty, "Beginner")
 
-    if model:
+    if client:
         prompt = f"""You are a quiz generator. Create exactly {num_questions} multiple-choice questions about: "{topic}".
 Difficulty level: {diff_label}.
 
@@ -120,7 +119,10 @@ Required JSON format:
 ]"""
 
         try:
-            response = model.generate_content(prompt)
+            response = client.models.generate_content(
+                model='gemini-pro',
+                contents=prompt
+            )
             content = response.text.strip()
             # Strip markdown code fences if present
             if content.startswith("```"):

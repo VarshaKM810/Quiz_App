@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 bcrypt
 python-jose
-google-generativeai
+google-genai
 python-dotenv
 email-validator
+
